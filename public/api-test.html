@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital API Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .output {
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #f5f5f5;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hospital API Test</h1>
+  
+  <h2>Appointment API Tests</h2>
+  <div>
+    <button onclick="testAppointment('direct')">Test Direct API</button>
+    <button onclick="testAppointment('jquery')">Test with jQuery</button>
+    <button onclick="testAppointment('fetch')">Test with Fetch</button>
+    <button onclick="testAppointment('xml')">Test with XMLHttpRequest</button>
+  </div>
+  
+  <h3>Response:</h3>
+  <div id="output" class="output">Response will appear here...</div>
+  
+  <div>
+    <h3>Custom Test</h3>
+    <textarea id="customData" style="width: 100%; height: 150px;">
+{
+  "pId": 1,
+  "drId": 1,
+  "descript": "Custom test appointment",
+  "appointmentDate": "2023-06-15",
+  "appointmentTime": "12:00",
+  "status": "PENDING"
+}</textarea>
+    <button onclick="testCustom()">Test Custom Data</button>
+  </div>
+  
+  <script>
+    // Load jQuery dynamically
+    function loadJQuery(callback) {
+      if (window.jQuery) {
+        callback();
+        return;
+      }
+      
+      const script = document.createElement('script');
+      script.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+      script.onload = callback;
+      document.head.appendChild(script);
+    }
+    
+    function logToOutput(text, isError = false) {
+      const output = document.getElementById('output');
+      const className = isError ? 'error' : 'success';
+      output.innerHTML += `<div class="${className}">${text}</div>`;
+      output.scrollTop = output.scrollHeight;
+    }
+    
+    function clearOutput() {
+      document.getElementById('output').innerHTML = '';
+    }
+    
+    function testAppointment(method) {
+      clearOutput();
+      logToOutput(`Testing appointment API using ${method}...`);
+      
+      const data = {
+        pId: 1,
+        drId: 1,
+        descript: `Test from ${method}`,
+        appointmentDate: "2023-06-15",
+        appointmentTime: "10:00",
+        status: "PENDING"
+      };
+      
+      logToOutput(`Sending data: ${JSON.stringify(data, null, 2)}`);
+      
+      switch (method) {
+        case 'direct':
+          // Using XMLHttpRequest with different field format
+          const directData = {
+            pId: 1,
+            drId: 1,
+            descript: `Direct test`,
+            appointmentDate: "2023-06-15", 
+            appointmentTime: "09:00",
+            status: "PENDING"
+          };
+          
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', 'http://localhost:8080/api/appointments', true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              logToOutput(`Direct API Response: ${xhr.responseText}`);
+            } else {
+              logToOutput(`Error: ${xhr.status} - ${xhr.responseText}`, true);
+            }
+          };
+          xhr.onerror = function() {
+            logToOutput('Direct API Request failed', true);
+          };
+          xhr.send(JSON.stringify(directData));
+          break;
+          
+        case 'jquery':
+          loadJQuery(() => {
+            $.ajax({
+              url: 'http://localhost:8080/api/appointments',
+              type: 'POST',
+              contentType: 'application/json',
+              data: JSON.stringify(data),
+              success: function(response) {
+                logToOutput(`jQuery Response: ${JSON.stringify(response, null, 2)}`);
+              },
+              error: function(xhr, status, error) {
+                logToOutput(`jQuery Error: ${status} - ${error}`, true);
+                logToOutput(`Response Text: ${xhr.responseText}`, true);
+              }
+            });
+          });
+          break;
+          
+        case 'fetch':
+          fetch('http://localhost:8080/api/appointments', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.text();
+          })
+          .then(text => {
+            try {
+              const json = JSON.parse(text);
+              logToOutput(`Fetch Response: ${JSON.stringify(json, null, 2)}`);
+            } catch (e) {
+              logToOutput(`Fetch Response (text): ${text}`);
+            }
+          })
+          .catch(error => {
+            logToOutput(`Fetch Error: ${error.message}`, true);
+          });
+          break;
+          
+        case 'xml':
+          const xmlHttp = new XMLHttpRequest();
+          xmlHttp.open('POST', 'http://localhost:8080/api/appointments', true);
+          xmlHttp.setRequestHeader('Content-Type', 'application/json');
+          xmlHttp.onload = function() {
+            if (xmlHttp.status === 200) {
+              logToOutput(`XMLHttpRequest Response: ${xmlHttp.responseText}`);
+            } else {
+              logToOutput(`Error: ${xmlHttp.status} - ${xmlHttp.responseText}`, true);
+            }
+          };
+          xmlHttp.onerror = function() {
+            logToOutput('XMLHttpRequest Request failed', true);
+          };
+          xmlHttp.send(JSON.stringify(data));
+          break;
+      }
+    }
+    
+    function testCustom() {
+      clearOutput();
+      try {
+        const data = JSON.parse(document.getElementById('customData').value);
+        logToOutput(`Testing with custom data: ${JSON.stringify(data, null, 2)}`);
+        
+        fetch('http://localhost:8080/api/appointments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.text();
+        })
+        .then(text => {
+          try {
+            const json = JSON.parse(text);
+            logToOutput(`Custom Response: ${JSON.stringify(json, null, 2)}`);
+          } catch (e) {
+            logToOutput(`Custom Response (text): ${text}`);
+          }
+        })
+        .catch(error => {
+          logToOutput(`Custom Error: ${error.message}`, true);
+        });
+      } catch (e) {
+        logToOutput(`Error parsing JSON: ${e.message}`, true);
+      }
+    }
+  </script>
+</body>
+</html> 

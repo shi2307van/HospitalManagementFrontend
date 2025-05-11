@@ -1,0 +1,55 @@
+/* Custom animations for the registration form */
+.perspective-effect {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+  transform-style: preserve-3d;
+  transform: perspective(1000px) rotateY(0deg);
+  transition: transform 0.5s ease-in-out;
+}
+
+.perspective-left {
+  transform: perspective(1000px) rotateY(2deg);
+}
+
+.perspective-right {
+  transform: perspective(1000px) rotateY(-2deg);
+}
+
+/* Success animation */
+@keyframes ping {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  70%, 100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+.animate-ping {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(0.95);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Shadow effects */
+.shadow-glow {
+  box-shadow: 0 0 15px rgba(20, 184, 166, 0.3), 0 0 30px rgba(20, 184, 166, 0.1);
+}
+
+.shadow-glow-sm {
+  box-shadow: 0 0 10px rgba(20, 184, 166, 0.2);
+} 
